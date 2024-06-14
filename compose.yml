@@ -1,0 +1,49 @@
+volumes:
+    db:
+
+services:
+    http:
+        container_name: login-system-nginx
+        image: nginx:alpine
+        restart: unless-stopped
+        ports:
+          - ${DOCKER_HTTP_PORT}:80
+        volumes:
+            - ./:/var/www
+            - ./.docker/nginx/:/etc/nginx/conf.d/
+        networks:
+            - login-system
+    app:
+        container_name: login-system-api
+        build:
+            args:
+              user: ${DOCKER_USER_ID:-0}
+              uid: ${DOCKER_GROUP_ID:-0}
+            context: .
+            dockerfile: Dockerfile
+        image: login-system-api
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - .:/var/www
+        networks:
+            - login-system
+
+    # db mysql
+    db:
+        container_name: login-system-db
+        image: mysql:8
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        volumes:
+            - db:/var/lib/mysql
+        ports:
+          - ${DOCKER_DB_PORT}:3306
+        networks:
+          - login-system
+
+networks:
+    login-system:
+        driver: bridge
