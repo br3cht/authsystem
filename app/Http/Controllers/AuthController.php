@@ -38,6 +38,13 @@ class AuthController extends Controller
         }
     }
 
+    public function logout(Request $request)
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json(['message' => 'Usuario Deslogado'], 200);
+    }
+
     protected function returnErrorException(string $message, int $code)
     {
         return response()->json(['message' => $message], $code);
